@@ -31,7 +31,9 @@ if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
 if "attempts" not in st.session_state:
-    st.session_state.attempts = 1
+    #BUG: Attempts were off by one because the attempt count was being updated after the display logic, causing the displayed attempts left to be inaccurate.
+    #FIX: Initialize attempts to 0 here, and then update it after the submit button is clicked, to ensure the attempt count is accurate.
+    st.session_state.attempts = 0
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -42,16 +44,14 @@ if "status" not in st.session_state:
 if "history" not in st.session_state:
     st.session_state.history = []
 
+#BUG: Show hint button was not working because it was inside the submit block, so it disappears after every rerun().
+#
+if "hint" not in st.session_state:
+    st.session_state.hint = None
+
 st.subheader("Make a guess")
-
-with st.expander("Developer Debug Info"):
-    st.write("Secret:", st.session_state.secret)
-    st.write("Attempts:", st.session_state.attempts)
-    st.write("Score:", st.session_state.score)
-    st.write("Difficulty:", difficulty)
-    st.write("History:", st.session_state.history)
-
-# Must be moved here, after the if submit block, to ensure the attempt limit is properly updated
+# BUG: Attempts display does not match up with the actual number of attempts left, due to the attempt count being updated after the display logic.
+# FIX: Store the hint in sessioon state and display it based on checkbox value outside submit block.
 st.info(
     f"Guess a number between {low} and {high}. "
     f"Attempts left: {attempt_limit - st.session_state.attempts}"
@@ -70,6 +70,9 @@ with col2:
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
+if show_hint and st.session_state.hint:
+    st.warning(st.session_state.hint)
+
 if new_game:
     # BUG: The "New Game" button doesn't reset the game state properly, allowing players to carry over their score and attempts. This can be exploited to win easily.
     # FIX: Reset all relevant session state variables to their initial values when starting a new game
@@ -78,6 +81,7 @@ if new_game:
     st.session_state.score = 0
     st.session_state.history = []
     st.session_state.status = "playing"
+    st.session_state.hint = None
     st.success("New game started.")
     st.rerun()
 
@@ -87,8 +91,6 @@ if st.session_state.status != "playing":
     else:
         st.error("Game over. Start a new game to try again.")
     st.stop()
-
-
 
 if submit:
     st.session_state.attempts += 1
@@ -111,8 +113,7 @@ if submit:
 
         outcome, message = check_guess(guess_int, secret)
 
-        if show_hint:
-            st.warning(message)
+        st.session_state.hint = message
 
         st.session_state.score = update_score(
             current_score=st.session_state.score,
@@ -135,8 +136,16 @@ if submit:
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
                 )
+    #BUG: Had to press submit twice to see the updated attempts left and score, because the state updates were happening after the display logic.
+    #FIX: Ran st.rerun() after updating the session state to ensure the display logic runs with the updated state immediately after a guess is submitted.
+    st.rerun()
 
-
+with st.expander("Developer Debug Info"):
+    st.write("Secret:", st.session_state.secret)
+    st.write("Attempts:", st.session_state.attempts)
+    st.write("Score:", st.session_state.score)
+    st.write("Difficulty:", difficulty)
+    st.write("History:", st.session_state.history)
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")
