@@ -49,6 +49,9 @@ if "history" not in st.session_state:
 if "hint" not in st.session_state:
     st.session_state.hint = None
 
+if "final_message" not in st.session_state:
+    st.session_state.final_message = None
+
 st.subheader("Make a guess")
 # BUG: Attempts display does not match up with the actual number of attempts left, due to the attempt count being updated after the display logic.
 # FIX: Store the hint in sessioon state and display it based on checkbox value outside submit block.
@@ -82,14 +85,16 @@ if new_game:
     st.session_state.history = []
     st.session_state.status = "playing"
     st.session_state.hint = None
+    st.session_state.final_message = None
     st.success("New game started.")
     st.rerun()
 
 if st.session_state.status != "playing":
     if st.session_state.status == "won":
-        st.success("You already won. Start a new game to play again.")
+        st.balloons()
+        st.success(st.session_state.final_message or "You already won. Start a new game to play again.")
     else:
-        st.error("Game over. Start a new game to try again.")
+        st.error(st.session_state.final_message or "Game over. Start a new game to try again.")
     st.stop()
 
 if submit:
@@ -122,16 +127,15 @@ if submit:
         )
 
         if outcome == "Win":
-            st.balloons()
             st.session_state.status = "won"
-            st.success(
+            st.session_state.final_message = (
                 f"You won! The secret was {st.session_state.secret}. "
                 f"Final score: {st.session_state.score}"
             )
         else:
             if st.session_state.attempts >= attempt_limit:
                 st.session_state.status = "lost"
-                st.error(
+                st.session_state.final_message = (
                     f"Out of attempts! "
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
