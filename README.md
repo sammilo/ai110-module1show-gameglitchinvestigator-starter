@@ -32,7 +32,7 @@ It wrote the code, ran away, and now the game is unplayable.
 ## 📸 Demo
 
 - GIF created using ScreenToGif
-<video src="https://github.com/user-attachments/assets/ec843d10-e889-4f72-b157-6a73002f5110"/>
+<img src="https://github.com/user-attachments/assets/ec843d10-e889-4f72-b157-6a73002f5110" />
 -Pytests
 <img width="1425" height="1343" alt="pytest" src="https://github.com/user-attachments/assets/6f271e64-f043-4218-acd3-83420c3966a5" />
 
